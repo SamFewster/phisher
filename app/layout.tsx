@@ -25,6 +25,7 @@ export default function RootLayout({
                 style={{
                     fontFamily: "Space Grotesk"
                 }}
+                suppressHydrationWarning
             >
                 <ThemeProvider
                     attribute="class"
