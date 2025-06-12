@@ -23,7 +23,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const Page = () => {
-    const TOTAL_EMAILS = 3;
+    const TOTAL_EMAILS = 10;
     const { resolvedTheme } = useTheme();
 
     const [mounted, setMounted] = useState(false);
@@ -63,7 +63,7 @@ const Page = () => {
     return (
         <div>
             {mounted &&
-                <div className='absolute top-0 left-0 max-w-screen max-h-screen min-h-screen min-w-screen flex flex-col items-center justify-center overflow-hidden flex flex-col'>
+                <div className='absolute top-0 left-0 max-w-screen max-h-screen min-h-screen min-w-screen flex flex-col items-center justify-center overflow-hidden'>
                     {/* PRE GAME SCREEN */}
                     <AnimatePresence>
                         {!beginGame && <motion.div
@@ -144,7 +144,7 @@ const Page = () => {
                                     <ScrollArea className='max-w-full flex-1 max-h-screen overflow-y-auto [&_[data-slot=scroll-area-viewport]>div]:block!'>
                                         <div className="flex flex-col-reverse">
                                             {emails.slice(0, completedEmails + 1).map((email, index) => (
-                                                <div className={cn("flex p-4 gap-4 hover:bg-muted transition-all duration-300 select-none items-center justify-start", viewingEmail === index && "bg-muted/50")} key={index} onClick={() => setViewingEmail(index)}>
+                                                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}className={cn("flex p-4 gap-4 hover:bg-muted transition-all duration-300 select-none items-center justify-start", viewingEmail === index && "bg-muted/50")} key={index} onClick={() => setViewingEmail(index)}>
                                                     <div className='h-full aspect-square w-[25px] flex items-center justify-center'>
                                                         {completedEmails > index ?
                                                             <>
@@ -156,7 +156,7 @@ const Page = () => {
                                                         <h2 className={cn("font-semibold truncate", completedEmails > index && (incorrectEmails.includes(index) ? "text-incorrect" : "text-correct"))}>{email.title}</h2>
                                                         <h1 className="text-muted-foreground text-sm truncate">{email.sender}</h1>
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             ))}
                                         </div>
                                         <ScrollBar orientation='vertical' />
@@ -242,12 +242,22 @@ const Page = () => {
                     </p>
                 </DialogContent>
             </Dialog>
-            <Dialog open={openScoreDialog} onOpenChange={(value) => setOpenScoreDialog(value)}>
-                <DialogContent>
-                    <DialogTitle>Congratulations for completing the game!</DialogTitle>
+            <Dialog open={openScoreDialog}>
+                <DialogContent className="[&>button:last-child]:hidden">
+                    <DialogTitle>Congratulations!</DialogTitle>
                     <div className="flex flex-col items-center justify-center text-center">
-                        <h2 className='text-sm'>In total, you correctly guessed {score} out of the {emails.length} total emails.</h2>
-                        <h3 className='text-xs text-muted-foreground'>That's {((score / emails.length) * 100).toFixed(2)}%!</h3>
+                        <h2 className='text-md'>In total, you correctly identified {score} out of the {emails.length} total emails.</h2>
+                        <h3 className='text-sm text-muted-foreground'>That's {((score / emails.length) * 100).toFixed(2)}%!</h3>
+                        <Button className='mt-4' onClick={() => {
+                            setOpenScoreDialog(false);
+                            setViewingEmail(null);
+                            setScore(0);
+                            setIncorrectEmails([]);
+                            setCompletedEmails(0);
+                            setEmails(generateMailList(TOTAL_EMAILS, name));
+                        }}>
+                            Play Again
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
