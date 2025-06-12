@@ -17,8 +17,9 @@ import { MailIcon, UserIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { generateMailList } from '@/lib/mail';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const Page = () => {
     const { resolvedTheme } = useTheme();
@@ -34,20 +35,22 @@ const Page = () => {
         lastName: ""
     });
 
-    const [beginGame, setBeginGame] = useState<boolean>(false);
+    const [beginGame, setBeginGame] = useState<boolean>(true);
     const [emails, setEmails] = useState<EmailProps[]>([]);
     const [viewingEmail, setViewingEmail] = useState<number | null>(null);
+    const [completedEmails, setCompletedEmails] = useState<number>(0);
+    const [score, setScore] = useState<number>(0);
+    const [incorrectEmails, setIncorrectEmails] = useState<number[]>([]);
 
     useEffect(() => {
         if (beginGame) {
-            const emails = generateMailList(1, name);
+            const emails = generateMailList(2, name);
             setEmails(emails);
         }
     }, [beginGame, name])
 
     return (
         <div>
-
             {mounted &&
                 <div className='fixed max-w-screen max-h-screen min-h-screen min-w-screen flex flex-col items-center justify-center overflow-hidden'>
                     {/* PRE GAME SCREEN */}
@@ -110,23 +113,32 @@ const Page = () => {
                             type: "spring",
                             stiffness: 70
                         }}>
-                        <ResizablePanelGroup direction="horizontal" className='rounded-lg border min-w-[900px] max-w-[900px] min-h-[700px] overflow-hidden'>
-                            <ResizablePanel defaultSize={30} className='flex flex-col'>
+                        <div className="flex flex-col p-2 items-center justify-center text-center">
+                            <h1 className=''>{completedEmails}/{emails.length} Emails completed</h1>
+                            <Progress value={(completedEmails / emails.length) * 100} className='w-full' />
+                        </div>
+                        <ResizablePanelGroup direction="horizontal" className='rounded-lg border min-w-[900px] max-w-[900px] min-h-[700px] max-h-[700px] overflow-hidden'>
+                            <ResizablePanel defaultSize={30} minSize={15} className='flex flex-col'>
                                 <nav className='border border-x-0 border-t-0 flex p-3 justify-start text-center items-center'>
                                     Inbox
+                                    <Button className='opacity-0'>
+                                        /
+                                    </Button>
                                 </nav>
-                                {emails.map((email, index) => (                                    
-                                    <div className={cn("flex p-4 gap-4 hover:bg-muted transition-all duration-300 select-none", viewingEmail === index && "bg-muted/50")} key={index} onClick={() => setViewingEmail(index)}>
-                                        <MailIcon className='h-full aspect-square min-w-[25px]' />
-                                        <div className="flex flex-col overflow-hidden w-full text-nowrap">
-                                            <h2 className="font-semibold truncate">{email.title}</h2>
-                                            <h1 className="text-muted-foreground text-sm truncate">{email.sender}</h1>
+                                <div className="flex flex-col-reverse">
+                                    {emails.slice(0, completedEmails + 1).map((email, index) => (
+                                        <div className={cn("flex p-4 gap-4 hover:bg-muted transition-all duration-300 select-none", viewingEmail === index && "bg-muted/50")} key={index} onClick={() => setViewingEmail(index)}>
+                                            <MailIcon className='h-full aspect-square min-w-[25px]' />
+                                            <div className="flex flex-col overflow-hidden w-full text-nowrap">
+                                                <h2 className="font-semibold truncate">{email.title}</h2>
+                                                <h1 className="text-muted-foreground text-sm truncate">{email.sender}</h1>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </ResizablePanel>
                             <ResizableHandle />
-                            <ResizablePanel defaultSize={70}>
+                            <ResizablePanel defaultSize={70} minSize={40} className='max-h-[700px] overflow-hidden'>
                                 <nav className='border border-x-0 border-t-0 flex p-3 justify-between items-center'>
                                     <p>Mail View</p>
                                     <Button variant="outline" className={cn(typeof viewingEmail === "number" ? "opacity-100" : "opacity-0")}>
@@ -134,23 +146,35 @@ const Page = () => {
                                     </Button>
                                 </nav>
                                 {typeof viewingEmail === "number" ? (
-                                    <div className='p-2'>
+                                    <div className='p-2 overflow-hidden'>
                                         <div className="flex flex-col overflow-hidden w-full whitespace-pre-wrap gap-2">
                                             <div className="flex flex-col gap-1">
                                                 <h2 className="font-semibold text-xl">{emails[viewingEmail].title}</h2>
-                                                <p className="flex gap-2 text-muted-foreground">
-                                                    <UserIcon />
+                                                <p className="flex gap-2 text-muted-foreground text-nowrap items-center overflow-hidden">
+                                                    <UserIcon size={20} className='aspect-square min-w-[20px] max-w-[20px]' />
                                                     {emails[viewingEmail].sender}
                                                 </p>
                                             </div>
                                             <Separator />
-                                            <h1 className="text-muted-foreground text-sm">
-                                                {emails[viewingEmail].content.split("{link}")[0]}
-                                                <Link href={emails[viewingEmail].link} className='text-primary/90 hover:underline'>                                       
-                                                    {emails[viewingEmail].link}
-                                                </Link>
-                                                {emails[viewingEmail].content.split("{link}")[1]}
-                                            </h1>
+                                            <div className="flex flex-1">
+                                                <ScrollArea className='max-w-full flex-1 max-h-[520px] flex [&_[data-slot=scroll-area-viewport]>div]:block!'>
+                                                    <h1 className="text-muted-foreground text-sm flex-1">
+                                                        {emails[viewingEmail].content.split("{link}")[0]}
+                                                        <span className='text-primary/90 hover:underline select-none cursor-pointer' onClick={() => {
+                                                            setCompletedEmails(prev => (prev + 1));
+                                                            if (emails[viewingEmail].scam) {
+                                                                setIncorrectEmails(prev => ([...prev, viewingEmail]));
+                                                            } else {
+                                                                setScore(prev => (prev + 1));
+                                                            }
+                                                        }}>
+                                                            {emails[viewingEmail].link}
+                                                        </span>
+                                                        {emails[viewingEmail].content.split("{link}")[1]}
+                                                    </h1>
+                                                    <ScrollBar orientation='vertical' />
+                                                </ScrollArea>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (

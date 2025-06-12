@@ -31,6 +31,14 @@ export const EMAIL_LIST: EmailProps[] = [
         title: "Immediate Action Required: Account Access Suspended",
         sender: "security-update@micros0ft-support.com",
         content: "Dear Valued Microsoft User,\n\nWe have detected unusual login activity on your Microsoft account from an unrecognized device. For your protection, we have temporarily suspended access.\n\nTo restore your account, please verify your identity within the next 12 hours to avoid permanent suspension.\n\nClick the link below to begin verification:\n\{link}\n\nFailure to complete verification will result in your account being permanently disabled.\n\nThank you for your prompt attention,\n\nMicrosoft Account Security Team\n\nDo not reply to this message. This is an automated system notification.",
-        link: "https://micros0ft-security-checkup.com/login"
+        link: "https://micros0ft-security-checkup.com/login",
+        scam: true
+    },
+    {
+        title: "Example thing",
+        sender: "security-update@dsdsds-sdsd.com",
+        content: "This is just some example {link}",
+        link: "https://micros0ft-security-checkup.com/login",
+        scam: true
     }
 ]

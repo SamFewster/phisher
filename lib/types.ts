@@ -7,5 +7,6 @@ export type EmailProps = {
     title: string,
     sender: string,
     content: string,
-    link: string
+    link: string,
+    scam: boolean
 }
